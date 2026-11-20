@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BLACK,S</title>
+<meta name="description" content="BLACK,S - tap to enter. A harmless prank page.">
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: #000; color: #fff; font-family: system-ui, sans-serif; text-align: center; padding: 24px;
+  }
+  h1 { font-size: clamp(2rem, 8vw, 4rem); letter-spacing: .2em; margin: 0 0 24px; }
+  button {
+    font-size: 1.2rem; padding: 14px 32px; border-radius: 10px; border: 2px solid #fff;
+    background: transparent; color: #fff; cursor: pointer;
+  }
+  button:active { background: #fff; color: #000; }
+  #alarm { display: none; }
+  body.on { animation: flash .4s steps(1) infinite; }
+  body.on #gate { display: none; }
+  body.on #alarm { display: block; }
+  #count { font-size: 4rem; font-weight: 700; margin: 16px 0; }
+  .prank { font-size: 1.6rem; margin-bottom: 8px; }
+  .small { opacity: .7; font-size: .9rem; margin-top: 16px; }
+  @keyframes flash { 0% { background: #000; } 50% { background: #b00000; } }
+</style>
+</head>
+<body>
+  <main>
+    <section id="gate">
+      <h1>BLACK,S</h1>
+      <button id="enter">TAP TO ENTER</button>
+    </section>
+
+    <section id="alarm">
+      <div class="prank">YOU GOT PRANKED! 😈</div>
+      <div id="count">60</div>
+      <button id="stop">STOP SOUND</button>
+      <p class="small">Prank by BLACK,S. Tap STOP any time.</p>
+    </section>
+  </main>
+
+<script>
+(function () {
+  var DURATION = 60;
+  var VOLUME = 0.35;
+  var ctx, osc, gain, sweepTimer, countTimer, remaining;
+
+  function start() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    ctx = new AC();
+    osc = ctx.createOscillator();
+    gain = ctx.createGain();
+    osc.type = 'square';
+    gain.gain.value = VOLUME;
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start();
+
+    var high = false;
+    function sweep() {
+      high = !high;
+      osc.frequency.setTargetAtTime(high ? 1200 : 600, ctx.currentTime, 0.05);
+    }
+    sweep();
+    sweepTimer = setInterval(sweep, 400);
+
+    remaining = DURATION;
+    document.getElementById('count').textContent = remaining;
+    document.body.classList.add('on');
+    countTimer = setInterval(function () {
+      remaining--;
+      document.getElementById('count').textContent = remaining;
+      if (remaining <= 0) stop();
+    }, 1000);
+  }
+
+  function stop() {
+    clearInterval(sweepTimer);
+    clearInterval(countTimer);
+    try { osc.stop(); ctx.close(); } catch (e) {}
+    document.body.classList.remove('on');
+    document.getElementById('gate').innerHTML =
+      '<h1>BLACK,S</h1><p>Prank over. 😄</p><button onclick="location.reload()">AGAIN</button>';
+  }
+
+  document.getElementById('enter').addEventListener('click', start);
+  document.getElementById('stop').addEventListener('click', stop);
+})();
+</script>
+</body>
+</html>
